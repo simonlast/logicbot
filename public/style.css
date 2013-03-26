@@ -1,0 +1,57 @@
+.noselect {
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+}
+body {
+  background-color: #fafafa;
+  font-family: 'source code pro', monospace;
+  overflow: hidden;
+  color: #646464;
+  margin: 0;
+}
+#pcanvas {
+  outline: none;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+  /* mobile webkit */
+
+  position: absolute;
+  top: 0;
+  left: 0px;
+  margin: 0;
+  padding: 0;
+  background-color: #fafafa;
+}
+.info {
+  position: absolute;
+  top: 8px;
+  right: 15px;
+  opacity: .6;
+  -webkit-transition: all 0.2s ease-in-out;
+  -moz-transition: all 0.2s ease-in-out;
+  -o-transition: all 0.2s ease-in-out;
+  -ms-transition: all 0.2s ease-in-out;
+}
+.info:hover {
+  opacity: .8;
+}
+i {
+  color: #141414;
+  font-size: 70px;
+}
+a {
+  text-decoration: none;
+}
+.recent {
+  position: absolute;
+  top: 88px;
+  right: 15px;
+  opacity: .6;
+  -webkit-transition: all 0.2s ease-in-out;
+  -moz-transition: all 0.2s ease-in-out;
+  -o-transition: all 0.2s ease-in-out;
+  -ms-transition: all 0.2s ease-in-out;
+}
+.recent:hover {
+  opacity: .8;
+}

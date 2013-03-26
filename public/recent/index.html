@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Word Waterfall</title>
+
+    <link type="text/css" rel="stylesheet" href="/recent/recent.css"/>
+    <link rel="shortcut icon" href="http://www.gravatar.com/avatar/3b964d84fcfbcdf59089c8bd7309f0b7.ico" />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  </head>
+  <body>
+
+    <div class="content">
+
+      <div class="about">
+        <div class="header"> <a class="highlight" href="/">Recent Phrases</a>
+        </div>
+
+        <div class="phrases"></div>
+       
+
+        <a class="highlight link" href="/about">About</a>
+        <br />
+        <a class="highlight link" href="http://github.com/simonlast">Source</a>
+        <br />
+        <a class="highlight link" href="http://simonlast.org">More Projects</a>
+      </div>
+
+    </div>
+
+    <script type="text/javascript">
+
+    $.get('/getrecent', function(data) {
+      for(i=0; i<data.length; i++){
+        $('.phrases').append('<div class="phrase">' + data[i] + '</div>');
+      }
+      
+    });
+
+    </script>
+  </body>
+</html>
