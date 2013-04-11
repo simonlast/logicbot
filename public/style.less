@@ -36,7 +36,8 @@
 
 body{
 	background-color:@bkg;
-	font-family:'source code pro',monospace;
+	font-family:'Helvetica Light', 'Helvetica';
+	font-weight: lighter;
 	overflow: hidden;
 	color:rgb(100,100,100);
 	margin: 0;
@@ -75,16 +76,68 @@ a{
 	text-decoration:none;
 }
 
-.recent{
-	position:absolute;
-	top:88px;
-	right:15px;
-	opacity: .6;
-	.ease;
+.helpToggle{
+    position: absolute;
+    top:0px;
+    right: 0;
+    background-color: darken(@bkg,10%);
+    color: rgb(100,100,100);
+    opacity: .7;
+    padding: 10px;
+    margin: 5px;
+    width: 60px;
+    .rounded-corners;
+    .noselect;
+    border: none;
+    
+    i{
+        font-size: 50px;
+    }
 }
 
-.recent:hover{
-	opacity:.8;
+.menuToggle{
+    position: absolute;
+    top:0px;
+    right: 70px;
+    background-color: darken(@bkg,10%);
+    color: rgb(100,100,100);
+    opacity: .7;
+    padding: 10px;
+    margin: 5px;
+    width: 60px;
+    .rounded-corners;
+    .noselect;
+    border: none;
+    
+    i{
+        font-size: 50px;
+    }
+}
+
+.help{
+    position: absolute;
+    top:80px;
+    right: -500px;
+    background-color: darken(@bkg,10%);
+    color: rgb(100,100,100);
+    opacity: .7;
+    width:400px;
+    padding: 20px;
+    margin: 5px;
+    font-size: 30px;
+    .rounded-corners;
+    .noselect;
+    .ease;
+    a{
+        text-decoration:underline;
+        color: rgb(100,100,100);
+    }
+}
+
+#info{
+    background-color: darken(@bkg,15%);
+    padding: 10px;
+    .rounded-corners;
 }
 
 

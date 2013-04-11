@@ -1,18 +1,45 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>logicbot</title>
+    <title>LogicBot</title>
     <link type="text/css" rel="stylesheet" href="style.css"/>
     <link rel="shortcut icon" href="http://www.gravatar.com/avatar/3b964d84fcfbcdf59089c8bd7309f0b7.ico" />
-    <!--<link rel="stylesheet" href="font-awesome.css">-->
+    <link rel="stylesheet" href="font-awesome.css">
   </head>
   <body>
     <canvas id="pcanvas"></canvas>
+
+    <button onmousedown="toggleHelp()" class="helpToggle">
+      <i class="icon-question-sign"></i>
+    </button>
+    <button onmousedown="pjs.toggleMenu()" class="menuToggle">
+      <i class="icon-reorder"></i>
+    </button>
+    <div id="helpbox" class="help">
+      Press something to learn how it works.
+      <br /><br />
+      <div id="info"></div>
+      <br />
+      <a href="/about">About this project</a>
+    </div>
     
     <script src="//ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js"></script>
     <script type="text/javascript" src="processing.js"></script>
     <script type="text/javascript" src="app.js"></script>
-    <!--<script src="/socket.io/socket.io.js"></script>
-    <script src="comm.js"></script>-->
+
+    <script type="text/javascript">
+
+      var visible = true;
+
+      var toggleHelp = function(){
+        var help = document.getElementById('helpbox');
+        visible = !visible;
+        if(visible)
+          help.style.right = '-500px';
+        else
+          help.style.right = '0px';
+      };
+
+    </script>
   </body>
 </html>

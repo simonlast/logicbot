@@ -13,6 +13,8 @@ var play = function(pjs) {
 	var currPart = null;
 	//part activated
 	var centerPart = null;
+	var center;
+
 	var translated;
 	var a_translated;
 	var mouse;
@@ -31,6 +33,7 @@ var play = function(pjs) {
 
 	//modes
 	var attachMode = false;
+	var showMenu = true;
 
 	//physical constants
 	var K = .02;
@@ -41,62 +44,67 @@ var play = function(pjs) {
 	var floatMultiplier = .37;
 	var defaultFallSpeed = 1;
 
-	pjs.setup = function(){
-		pjs.size(pjs.screenWidth,pjs.screenHeight);
-		pjs.noStroke();
-		pjs.smooth();
-		pjs.textAlign(pjs.CENTER);
+	pjs.setupScreen = function(){
+		pjs.size(pjs.screenWidth, pjs.screenHeight);
 		var ratio = pjs.height/pjs.width;
 		snapDist = pjs.width*ratio/4;
 
-		gridSize = pjs.width/20;
-		gridStroke = pjs.width/200;
+		gridSize = pjs.width*ratio/15;
+		gridStroke = pjs.width*ratio/200;
 
 		mouse = new pjs.PVector();
-
-		controlDimen = new pjs.PVector(pjs.width/5, pjs.height);
 
 		types = [
 			{
 				name: 'Button',
 				constructor: Button,
-				color: pjs.color(99,136,142)
+				color: pjs.color(99,136,142),
+				help: "Press a Button to start a chain reaction, activating everything it is connected to."
 			},
 			{
 				name: 'Thruster',
 				constructor: Thruster,
-				color: pjs.color(232,179,119)
+				color: pjs.color(232,179,119),
+				help: "When activated, a Thruster will move in the direction of the button that activated it."
 			},
 			{
-				name: 'AND',
+				name: 'AndGate',
 				constructor: AndGate,
-				color: pjs.color(147,181,159)
+				color: pjs.color(147,181,159),
+				help: "An AND Gate will only activate if all of its inputs are active."
 			},
 			{
-				name: 'NOT',
+				name: 'NotGate',
 				constructor: NotGate,
-				color: pjs.color(237,212,142)
+				color: pjs.color(237,212,142),
+				help: "A NOT Gate will only activate if it hasn't been activated by any other button."
 			},
 			{
-				name: 'OR',
+				name: 'OrGate',
 				constructor: OrGate,
-				color: pjs.color(200,220,142)
+				color: pjs.color(200,220,142),
+				help: "An OR gate will activate if any of its inputs are active."
 			},
 			{
-				name: 'Delete',
+				name: 'DeleteButton',
 				constructor: DeleteButton,
-				color: pjs.color(214,120,97)
+				color: pjs.color(214,120,97),
+				help: "Drag the DeleteButton over another button to delete it."
 			},
 			{
-				name: 'Attach',
+				name: 'AttachButton',
 				constructor: AttachButton,
-				color: pjs.color(180)
+				color: pjs.color(180),
+				help: "Use the attach button to connect two buttons by dragging from one to another."
 			}
 		];
+
+		center = new pjs.PVector();
 
 		typeDict = {};
 
 		var cols = Math.ceil(types.length/4);
+		controlDimen = new pjs.PVector(80 * cols + 100, pjs.height);
 		var rows = Math.floor(controlDimen.y / 120);
 
 		var j = 0;
@@ -118,6 +126,16 @@ var play = function(pjs) {
 		translated = new pjs.PVector(pjs.width/2, pjs.height/2);
 		a_translated = new pjs.PVector(pjs.width/2, pjs.height/2);
 
+	};
+
+	pjs.setup = function(){
+		
+		pjs.setupScreen();
+
+		pjs.noStroke();
+		pjs.smooth();
+		pjs.textAlign(pjs.CENTER);
+		
 		var b = new Button(0,0,100);
 		centerPart = b;
 		parts.push(b);
@@ -134,7 +152,7 @@ var play = function(pjs) {
 		mouse.y = pjs.mouseY - translated.y;
 
 		pjs.pushMatrix();
-		pjs.translate(a_translated.x,a_translated.y);
+		pjs.translate(translated.x,translated.y);
 
 		drawGrid();
 
@@ -146,12 +164,19 @@ var play = function(pjs) {
 			currPart.drawPossibleLinks();
 		}
 
+		center.x = 0;
+		center.y = 0;
+
 		for(var i = 0; i<parts.length; i++) {
 			parts[i].render();
+			center.add(parts[i].pos);
 		}
+
+		center.div(parts.length);
 
 		if(currPart){
 			currPart.render();
+			
 		}
 
 		for(var i = 0; i<parts.length; i++) {
@@ -161,27 +186,31 @@ var play = function(pjs) {
 		pjs.popMatrix();
 
 		
-
-		drawMenu();
+		if(showMenu)
+			drawMenu();
 		
 	};
 
 	var drawGrid = function(){
 		pjs.fill(235);
 		
-		var minX = Math.round((-1*a_translated.x)/gridSize)*gridSize + gridSize/2;
-		var maxX = pjs.width - a_translated.x;
+		var minX = Math.round((-1*translated.x)/gridSize)*gridSize + gridSize/2;
+		var maxX = pjs.width - translated.x;
 		for(var x = minX; x < maxX; x+=gridSize){
-			pjs.rect(x, -1*a_translated.y , gridStroke, pjs.height);
+			pjs.rect(x, -1*translated.y , gridStroke, pjs.height);
 		}
 
-		var minY = Math.round((-1*a_translated.y)/gridSize)*gridSize + gridSize/2;
-		var maxY = pjs.height - a_translated.y;
+		var minY = Math.round((-1*translated.y)/gridSize)*gridSize + gridSize/2;
+		var maxY = pjs.height - translated.y;
 		for(var y = minY; y < maxY; y+=gridSize){
-			pjs.rect(-1*a_translated.x, y , pjs.width, gridStroke);
+			pjs.rect(-1*translated.x, y , pjs.width, gridStroke);
 		}
 	
 	};
+
+	pjs.toggleMenu = function(){
+		showMenu = !showMenu;
+	}
 
 	var drawMenu = function(){
 
@@ -215,12 +244,13 @@ var play = function(pjs) {
 			return;
 		}
 
-		if(mouse.x <= (controlDimen.x-translated.x)){
+		if(showMenu && mouse.x <= (controlDimen.x-translated.x)){
 			activateController();
 			return;
 		}
 
 		var minPart = findNearestPart(parts, mouse);
+
 
 		if(minPart && minPart.dist < snapDist){
 			if(attachMode){
@@ -228,6 +258,8 @@ var play = function(pjs) {
 			}else{
 				minPart.el.active = true;
 			}
+			//update help
+			document.getElementById('info').innerHTML = typeDict[minPart.el.type].help;
 		}
 	};
 
@@ -318,6 +350,8 @@ var play = function(pjs) {
 		var minType = findNearestPart(types, tmouse);
 
 		if(minType && minType.dist < snapDist){
+			//update help
+			document.getElementById('info').innerHTML = typeDict[minType.el.name].help;
 			currPart = new minType.el.constructor(mouse.x, mouse.y, 80);
 		}
 	}
@@ -351,8 +385,8 @@ var play = function(pjs) {
 	};
 
 	var adjustTranslation = function(){
-		var center = centerPart.pos;
-		var screenPos = new pjs.PVector(center.x + translated.x,
+		//var center = centerPart.pos;
+		/*var screenPos = new pjs.PVector(center.x + translated.x,
 			center.y + translated.y);
 		if(screenPos.x < pjs.width*edge){
 			translated.x = pjs.width*edge - center.x;
@@ -363,10 +397,13 @@ var play = function(pjs) {
 			translated.y = pjs.height*edge - center.y;
 		}else if(screenPos.y > pjs.height*(1-edge)){
 			translated.y = pjs.height*(1-edge) - center.y;
-		}
+		}*/
 
-		a_translated.x += (translated.x - a_translated.x)*.1;
-		a_translated.y += (translated.y - a_translated.y)*.1;
+		a_translated.x = pjs.width/2 - center.x;
+		a_translated.y = pjs.height/2 - center.y;
+
+		translated.x += (a_translated.x - translated.x)*.05;
+		translated.y += (a_translated.y - translated.y)*.05;
 
 	};
 
@@ -510,11 +547,14 @@ var play = function(pjs) {
 
 		connect: function(other){
 			//connect parts in graph
-			this.neighbors.push(other);
-			other.neighbors.push(this);
+			if(this.neighbors.indexOf(other) == -1)
+				this.neighbors.push(other);
+			if(other.neighbors.indexOf(this) == -1)
+				other.neighbors.push(this);
 
 			//only directionally connect parent
-			this.connected.push(other);
+			if(this.connected.indexOf(other) == -1)
+				this.connected.push(other);
 		},
 
 		disconnect: function(other){
@@ -572,7 +612,7 @@ var play = function(pjs) {
 
 	//button part
 	var Button = Class.create(Part, {
-		
+		type: 'Button',
 		render: function($super){
 
 			if(this.active){
@@ -588,24 +628,26 @@ var play = function(pjs) {
 	});
 
 	var Thruster = Class.create(Part, {
-		
+		type: 'Thruster',
 		render: function($super){
 			pjs.fill(typeDict['Thruster'].color);
 			$super();
 		},
 
 		chainReact: function($super, source){
-			$super(source);
 			//thrust
-			var diff = pjs.PVector.sub(source.pos, this.pos);
-			diff.normalize();
-			this.a.add(diff);
+			if(!this.reacted){
+				var diff = pjs.PVector.sub(source.pos, this.pos);
+				diff.normalize();
+				this.a.add(diff);
+				$super(source);
+			}
 		}
 
 	});
 
 	var NotGate = Class.create(Part, {
-		
+		type:'NotGate',
 		initialize: function($super, x, y, rad){
 			this.on = true;
 			$super(x, y, rad);
@@ -617,7 +659,7 @@ var play = function(pjs) {
 		},
 
 		render: function($super){
-			pjs.fill(typeDict['NOT'].color);
+			pjs.fill(typeDict[this.type].color);
 			$super();
 		},
 
@@ -636,7 +678,7 @@ var play = function(pjs) {
 	});
 
 	var DeleteButton = Class.create(Part, {
-		
+		type:'DeleteButton',
 		initialize: function($super, x, y, rad){
 			this.on = true;
 			$super(x, y, rad);
@@ -648,7 +690,7 @@ var play = function(pjs) {
 		},
 
 		render: function($super){
-			pjs.fill(typeDict['Delete'].color);
+			pjs.fill(typeDict[this.type].color);
 			$super();
 		},
 
@@ -669,7 +711,7 @@ var play = function(pjs) {
 		},
 
 		drawLink: function(from, to){
-			pjs.fill(typeDict['Delete'].color,100);
+			pjs.fill(typeDict[this.type].color,100);
 			var diff = pjs.PVector.sub(from, to);
 			diff.normalize();
 			diff.mult(this.rad/4);
@@ -681,7 +723,7 @@ var play = function(pjs) {
 	});
 
 	var AttachButton = Class.create(Part, {
-		
+		type:'AttachButton',
 		initialize: function($super, x, y, rad){
 			this.on = true;
 			this.timesUsed = 0;
@@ -699,7 +741,7 @@ var play = function(pjs) {
 		},
 
 		render: function($super){
-			pjs.fill(typeDict['Attach'].color);
+			pjs.fill(typeDict[this.type].color);
 			$super();
 		},
 
@@ -741,7 +783,7 @@ var play = function(pjs) {
 	});
 
 	var AndGate = Class.create(Part, {
-		
+		type:'AndGate',
 		initialize: function($super, x, y, rad){
 			this.on = true;
 			this.numActivated = 0;
@@ -759,7 +801,7 @@ var play = function(pjs) {
 		},
 
 		render: function($super){
-			pjs.fill(typeDict['AND'].color);
+			pjs.fill(typeDict[this.type].color);
 			$super();
 		},
 
@@ -782,9 +824,9 @@ var play = function(pjs) {
 	});
 
 	var OrGate = Class.create(Part, {
-
+		type:'OrGate',
 		render: function($super){
-			pjs.fill(typeDict['OR'].color);
+			pjs.fill(typeDict[this.type].color);
 			$super();
 		},
 
@@ -794,3 +836,8 @@ var play = function(pjs) {
 
 var canvas = document.getElementById("pcanvas");
 var pjs = new Processing(canvas, play);
+
+window.onresize = function(event) {
+   pjs.setupScreen();
+}
+
