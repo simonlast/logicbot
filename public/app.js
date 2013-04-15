@@ -4,7 +4,7 @@ var play = function(pjs) {
 	//style
 	var bkg = pjs.color(250);
 	var PartColor = pjs.color(60,172);
-	var fontSize = 60;
+	var fontSize = 25;
 
 	//vars
 	var parts = [];
@@ -23,6 +23,7 @@ var play = function(pjs) {
 	var gridStroke;
 
 	var edge = 1/3;
+	var buttonWidth = 80;
 
 	var multiTouch = false;
 
@@ -86,13 +87,13 @@ var play = function(pjs) {
 				help: "An OR gate will activate if any of its inputs are active."
 			},
 			{
-				name: 'DeleteButton',
+				name: 'Delete',
 				constructor: DeleteButton,
 				color: pjs.color(214,120,97),
 				help: "Drag the DeleteButton over another button to delete it."
 			},
 			{
-				name: 'AttachButton',
+				name: 'Attach',
 				constructor: AttachButton,
 				color: pjs.color(180),
 				help: "Use the attach button to connect two buttons by dragging from one to another."
@@ -103,22 +104,23 @@ var play = function(pjs) {
 
 		typeDict = {};
 
-		var cols = Math.ceil(types.length/4);
-		controlDimen = new pjs.PVector(80 * cols + 100, pjs.height);
-		var rows = Math.floor(controlDimen.y / 120);
+		var rows = Math.ceil((types.length * (buttonWidth * 1.5)) / pjs.width);
+		var cols = Math.ceil(types.length / rows);
+		controlDimen = new pjs.PVector(pjs.width, 140*rows);
 
-		var j = 0;
-		var y = 0;
+		var startX = controlDimen.x/cols;
+		var x = startX;
+		var y = pjs.height - controlDimen.y + controlDimen.y/(rows + 1) + 15;
 
 		for(var i=0; i<types.length; i++){
-			if((i+1)%(rows+1) == 0){
-				j++;
-				y = 0;
+			if(i % cols == 0 && i > 0){
+				y += controlDimen.y / (rows+1) + 30;
+				x = startX;
 			}
 			var curr = types[i];
 			typeDict[curr.name] = curr
-			curr.pos = new pjs.PVector(controlDimen.x/cols*(j) + 67, y + 80);
-			y += (controlDimen.y/rows);
+			curr.pos = new pjs.PVector(x - startX/2, y);
+			x += (controlDimen.x/cols);
 		}
 
 		console.log(typeDict);
@@ -166,22 +168,20 @@ var play = function(pjs) {
 
 		center.x = 0;
 		center.y = 0;
-
 		for(var i = 0; i<parts.length; i++) {
 			parts[i].render();
 			center.add(parts[i].pos);
 		}
-
 		center.div(parts.length);
-
 		if(currPart){
 			currPart.render();
-			
 		}
 
 		for(var i = 0; i<parts.length; i++) {
 			parts[i].finish();
 		}
+
+		
 
 		pjs.popMatrix();
 
@@ -215,8 +215,8 @@ var play = function(pjs) {
 	var drawMenu = function(){
 
 		pjs.fill(172,100);
-		pjs.rect(0,0,controlDimen.x, controlDimen.y);
-		pjs.textSize(18);
+		pjs.rect(0,pjs.height - controlDimen.y,controlDimen.x, controlDimen.y);
+		pjs.textSize(fontSize);
 
 		for(var i=0; i<types.length; i++){
 			var curr = types[i];
@@ -224,7 +224,7 @@ var play = function(pjs) {
 			pjs.fill(curr.color);
 			pjs.ellipse(curr.pos.x, curr.pos.y, 80,80);
 			pjs.fill(100,172);
-			pjs.text(curr.name, curr.pos.x, curr.pos.y-45);
+			pjs.text(curr.name, curr.pos.x, curr.pos.y-50);
 		}
 
 
@@ -244,7 +244,7 @@ var play = function(pjs) {
 			return;
 		}
 
-		if(showMenu && mouse.x <= (controlDimen.x-translated.x)){
+		if(showMenu && mouse.y >= (pjs.height - controlDimen.y -translated.y)){
 			activateController();
 			return;
 		}
@@ -352,7 +352,7 @@ var play = function(pjs) {
 		if(minType && minType.dist < snapDist){
 			//update help
 			document.getElementById('info').innerHTML = typeDict[minType.el.name].help;
-			currPart = new minType.el.constructor(mouse.x, mouse.y, 80);
+			currPart = new minType.el.constructor(mouse.x, mouse.y, buttonWidth);
 		}
 	}
 
@@ -429,8 +429,9 @@ var play = function(pjs) {
 		},
 
 		setupTick: function(){
-			this.reacted = false;
+			
 			this.drawLinks();
+			this.reacted = false;
 			//this.drawPossibleLinks();
 		},
 
@@ -511,7 +512,12 @@ var play = function(pjs) {
 		},
 
 		drawLink: function(from, to){
-			pjs.fill(80,100);
+			if(this.reacted){
+				pjs.fill(10,100);
+			}
+			else{
+				pjs.fill(100,100);
+			}
 			var diff = pjs.PVector.sub(from, to);
 			diff.normalize();
 			diff.mult(this.rad/4);
@@ -541,6 +547,7 @@ var play = function(pjs) {
 			pjs.translate(this.pos.x, this.pos.y);
 			pjs.rotate(this.rot + this.v.x/50);
 			pjs.ellipse(0, 0, this.rad, this.rad);
+			
 			pjs.popMatrix();
 
 		},
@@ -562,7 +569,6 @@ var play = function(pjs) {
 			var th = this;
 
 			other.neighbors = other.neighbors.filter(function(o){
-				console.log(o != th);
 				return o != th;
 			});
 
@@ -576,6 +582,16 @@ var play = function(pjs) {
 				var curr = this.neighbors[i];
 				this.disconnect(curr);
 			}
+		},
+
+		connectedTo: function(){
+			var arr = []
+			for(var i=0; i<this.neighbors.length; i++){
+				if(this.neighbors[i].connected.indexOf(this) != -1){
+					arr.push(this.neighbors[i]);
+				}
+			}
+			return arr;
 		},
 
 		chainReact: function(source){
@@ -664,7 +680,7 @@ var play = function(pjs) {
 		},
 
 		chainReact: function($super, source, callOrig){
-			//thrust
+			console.log(this.on);
 			if(callOrig)
 				$super(source);
 			this.on = false;
@@ -678,7 +694,7 @@ var play = function(pjs) {
 	});
 
 	var DeleteButton = Class.create(Part, {
-		type:'DeleteButton',
+		type:'Delete',
 		initialize: function($super, x, y, rad){
 			this.on = true;
 			$super(x, y, rad);
@@ -698,15 +714,43 @@ var play = function(pjs) {
 			return;
 		},
 
+		getOrphans: function(part){
+
+			var orphans = [];
+
+			if(part == centerPart){
+				return orphans;
+			}
+
+			var connected = part.connected;
+			var connectedTo = part.connectedTo();
+			if(connectedTo.length == 0){
+				orphans.push(part);
+				part.disconnectAll();
+				for(var i=0; i<connected.length; i++){
+					var arr = this.getOrphans(connected[i]);
+					orphans = orphans.concat(arr);
+				}
+			}
+
+			return orphans;
+		},
+
+		orphan: function(part){
+			var connectedTo = part.connectedTo();
+			for(var i=0; i<connectedTo.length; i++){
+				part.disconnect(connectedTo[i]);
+			}
+		},
+
 		attach: function(){
 			if(this.minPart && this.minPart != centerPart){
-				this.minPart.disconnectAll();
-				console.log(parts);
-				var minPart = this.minPart
+				this.orphan(this.minPart);
+				var toDelete = this.getOrphans(this.minPart);
+				var minPart = this.minPart;
 				parts = parts.filter(function(o){
-					return o != minPart;
+					return toDelete.indexOf(o) == -1;
 				});
-				console.log(parts);
 			}
 		},
 
@@ -723,7 +767,7 @@ var play = function(pjs) {
 	});
 
 	var AttachButton = Class.create(Part, {
-		type:'AttachButton',
+		type:'Attach',
 		initialize: function($super, x, y, rad){
 			this.on = true;
 			this.timesUsed = 0;
@@ -807,20 +851,11 @@ var play = function(pjs) {
 
 		chainReact: function($super, source){
 			this.numActivated++;
-			var num = 0;
-			for(var i=0; i<this.neighbors.length; i++){
-				if(this.neighbors[i].connected.indexOf(this) != -1){
-					num++;
-				}
-			}
-			//console.log(this.numActivated + ", " +num);
+			var num = this.connectedTo().length;
 			if(this.numActivated == num){
 				$super(this);
-
-			}
-			
+			}		
 		}
-
 	});
 
 	var OrGate = Class.create(Part, {

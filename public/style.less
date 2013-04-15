@@ -82,7 +82,7 @@ a{
     right: 0;
     background-color: darken(@bkg,10%);
     color: rgb(100,100,100);
-    opacity: .7;
+    
     padding: 10px;
     margin: 5px;
     width: 60px;
@@ -95,13 +95,25 @@ a{
     }
 }
 
+.toggle{
+    opacity: .8;
+    .ease(.15s);
+    i{
+        color: rgb(40,40,40);
+    }
+    
+}
+
+.toggle:hover{
+    opacity: 1;
+}
+
 .menuToggle{
     position: absolute;
     top:0px;
     right: 70px;
     background-color: darken(@bkg,10%);
     color: rgb(100,100,100);
-    opacity: .7;
     padding: 10px;
     margin: 5px;
     width: 60px;
