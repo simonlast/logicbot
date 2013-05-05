@@ -123,8 +123,6 @@ var play = function(pjs) {
 			x += (controlDimen.x/cols);
 		}
 
-		console.log(typeDict);
-
 		translated = new pjs.PVector(pjs.width/2, pjs.height/2);
 		a_translated = new pjs.PVector(pjs.width/2, pjs.height/2);
 
@@ -159,12 +157,16 @@ var play = function(pjs) {
 		drawGrid();
 
 		for(var i = 0; i<parts.length; i++) {
-			parts[i].setupTick();
+			parts[i].react();
+		}
+		for(var i = 0; i<parts.length; i++) {
+			parts[i].drawLinks();
 		}
 		if(currPart){
 			currPart.drawLinks();
 			currPart.drawPossibleLinks();
 		}
+
 
 		center.x = 0;
 		center.y = 0;
@@ -176,12 +178,6 @@ var play = function(pjs) {
 		if(currPart){
 			currPart.render();
 		}
-
-		for(var i = 0; i<parts.length; i++) {
-			parts[i].finish();
-		}
-
-		
 
 		pjs.popMatrix();
 
@@ -282,57 +278,25 @@ var play = function(pjs) {
 		
 		
 	};
-
-	/*
-	pjs.touchMove = function(touchEvent){
-		multiTouch = true;
-  		for (var i = 0; i < touchEvent.touches.length; i++) {
-    		var x = touchEvent.touches[i].offsetX;
-    		var y = touchEvent.touches[i].offsetY;
-    		mouse.x = x - translated.x;
-			mouse.y = y - translated.y;
-    		var minPart = parts[0];
-			var minDist = pjs.PVector.dist(mouse, parts[0].part.pos);
-
-			if(parts.length > 1){
-				for(var i=1; i<parts.length; i++){		
-					var currDist = pjs.PVector.dist(mouse,parts[i].part.pos);
-					if(currDist < minDist){
-						minDist = currDist;
-						minPart = parts[i];
-					}
-				}
-			}
-			if(minDist < snapDist){
-				minPart.active = true; 
-	  		}
-	  	}
-  	};
-	*/
 	
 	var activateAttach = function(){
-		console.log("activateAttach");
 		var nearest = findNearestPart(parts, currPart.pos);
 
 		if(nearest && nearest.dist < snapDist){
 			currPart.attached.from = nearest.el;
 		}
 
-		console.log(currPart.attached);
-
 	};
 
 	var attachRelease = function(){
-		console.log("attachRelease");
 
 		currPart.timesUsed++;
 
 		if(currPart.timesUsed <= 1){
 			return;
 		}else if(currPart.timesUsed == 2){
-			console.log(currPart.attached);
 			if(currPart.attached.to){
-				currPart.finish();
+				currPart.finishAttach();
 				currPart = null;
 				attachMode = false;
 			}
@@ -385,23 +349,11 @@ var play = function(pjs) {
 	};
 
 	var adjustTranslation = function(){
-		//var center = centerPart.pos;
-		/*var screenPos = new pjs.PVector(center.x + translated.x,
-			center.y + translated.y);
-		if(screenPos.x < pjs.width*edge){
-			translated.x = pjs.width*edge - center.x;
-		}else if(screenPos.x > pjs.width*(1-edge)){
-			translated.x = pjs.width*(1-edge) - center.x;
-		}
-		if(screenPos.y < pjs.height*edge){
-			translated.y = pjs.height*edge - center.y;
-		}else if(screenPos.y > pjs.height*(1-edge)){
-			translated.y = pjs.height*(1-edge) - center.y;
-		}*/
 
 		a_translated.x = pjs.width/2 - center.x;
 		a_translated.y = pjs.height/2 - center.y;
 
+		//tween translation 
 		translated.x += (a_translated.x - translated.x)*.05;
 		translated.y += (a_translated.y - translated.y)*.05;
 
@@ -425,14 +377,14 @@ var play = function(pjs) {
 			this.connected = []; //connected in circuit
 
 			//chainReacted this tick
-			this.reacted = false;
+			this.reacted = 0;
+			this.lastReacted = 0;
 		},
 
 		setupTick: function(){
 			
 			this.drawLinks();
-			this.reacted = false;
-			//this.drawPossibleLinks();
+			this.reacted = 0;
 		},
 
 		tick: function(){
@@ -512,7 +464,7 @@ var play = function(pjs) {
 		},
 
 		drawLink: function(from, to){
-			if(this.reacted){
+			if(this.propagated){
 				pjs.fill(10,100);
 			}
 			else{
@@ -527,7 +479,6 @@ var play = function(pjs) {
 		},
 
 		drawLinks: function(){
-
 			for(var i=0; i<this.connected.length; i++){
 				this.drawLink(this.pos,this.connected[i].pos);
 			}
@@ -537,6 +488,8 @@ var play = function(pjs) {
 
 			if(!currPart)
 				this.tick();
+
+			this.finish();
 
 			if(this == currPart){
 				this.pos.x = mouse.x;
@@ -594,26 +547,28 @@ var play = function(pjs) {
 			return arr;
 		},
 
-		chainReact: function(source){
-			if(this.reacted){
-				return;
+		react: function(){
+			if(this.lastReacted > 0){
+				this.propagate();
 			}
-			this.reacted = true;
-			//continue reaction
+		},
+
+		finish: function(){
+			this.lastReacted = this.reacted;
+			this.reacted = 0;
+			this.propagated = false;
+		},
+
+		propagate: function(){
+			this.propagated = true;
 			for(var i=0; i<this.connected.length; i++){
 				var curr = this.connected[i];
 				curr.chainReact(this);
 			}
-			/*pjs.stroke(100,172);
-			pjs.strokeWeight(5);
-			pjs.line(this.pos.x, this.pos.y - this.rad, this.pos.x, this.pos.y + this.rad);
-			pjs.noStroke();*/
-			//pjs.fill(172,172);
-			//pjs.ellipse(this.pos.x, this.pos.y, this.rad+10, this.rad+10);
 		},
 
-		finish: function(){
-
+		chainReact: function(source){
+			this.reacted++;
 		},
 
 		attach: function(){
@@ -630,15 +585,19 @@ var play = function(pjs) {
 	var Button = Class.create(Part, {
 		type: 'Button',
 		render: function($super){
-
 			if(this.active){
-				this.chainReact(this);	
 				pjs.fill(84,115,115);
 			}else{
 				pjs.fill(typeDict['Button'].color);
 			}
 
 			$super();
+		},
+
+		react: function(){
+			if(this.lastReacted > 0 || this.active){
+				this.propagate();
+			}
 		}
 
 	});
@@ -648,62 +607,44 @@ var play = function(pjs) {
 		render: function($super){
 			pjs.fill(typeDict['Thruster'].color);
 			$super();
+			this.source = null;
 		},
 
 		chainReact: function($super, source){
-			//thrust
-			if(!this.reacted){
-				var diff = pjs.PVector.sub(source.pos, this.pos);
+			this.source = source;
+			$super(source);
+		},
+
+		finish: function($super){
+			if(this.reacted > 0 && this.source){
+				var diff = pjs.PVector.sub(this.source.pos, this.pos);
 				diff.normalize();
 				this.a.add(diff);
-				$super(source);
 			}
+			this.source = null;
+			$super();
 		}
 
 	});
 
 	var NotGate = Class.create(Part, {
 		type:'NotGate',
-		initialize: function($super, x, y, rad){
-			this.on = true;
-			$super(x, y, rad);
-		},
-
-		drawLinks: function($super){
-			this.on = true;
-			$super();
-		},
 
 		render: function($super){
 			pjs.fill(typeDict[this.type].color);
 			$super();
 		},
 
-		chainReact: function($super, source, callOrig){
-			console.log(this.on);
-			if(callOrig)
-				$super(source);
-			this.on = false;
-		},
-
-		finish: function(){
-			if(this.on)
-				this.chainReact(this, true);
+		react: function(){
+			if(this.lastReacted == 0){
+				this.propagate();
+			}
 		}
 
 	});
 
 	var DeleteButton = Class.create(Part, {
 		type:'Delete',
-		initialize: function($super, x, y, rad){
-			this.on = true;
-			$super(x, y, rad);
-		},
-
-		drawLinks: function($super){
-			this.on = true;
-			$super();
-		},
 
 		render: function($super){
 			pjs.fill(typeDict[this.type].color);
@@ -769,7 +710,6 @@ var play = function(pjs) {
 	var AttachButton = Class.create(Part, {
 		type:'Attach',
 		initialize: function($super, x, y, rad){
-			this.on = true;
 			this.timesUsed = 0;
 			attachMode = true;
 			this.attached = {
@@ -777,11 +717,6 @@ var play = function(pjs) {
 				to: null
 			};
 			$super(x, y, 40);
-		},
-
-		drawLinks: function($super){
-			this.on = true;
-			$super();
 		},
 
 		render: function($super){
@@ -808,18 +743,13 @@ var play = function(pjs) {
 					this.attached.to = null;
 					this.drawLink(this.attached.from.pos, this.pos);
 				}
-
-				console.log(this.attached);
 			}else{
 				$super();
 			}
 		},
 
-		finish: function(){
-			console.log(this.attached.from);
-			console.log(this.attached.to);
+		finishAttach: function(){
 			if(this.attached.from && this.attached.to){
-				console.log("connect");
 				this.attached.from.connect(this.attached.to);
 			}
 		}
@@ -828,33 +758,16 @@ var play = function(pjs) {
 
 	var AndGate = Class.create(Part, {
 		type:'AndGate',
-		initialize: function($super, x, y, rad){
-			this.on = true;
-			this.numActivated = 0;
-			$super(x, y, rad);
-		},
-
-		setupTick: function($super){
-			this.numActivated = 0;
-			$super();
-		},
-
-		drawLinks: function($super){
-			this.on = true;
-			$super();
-		},
 
 		render: function($super){
 			pjs.fill(typeDict[this.type].color);
 			$super();
 		},
 
-		chainReact: function($super, source){
-			this.numActivated++;
-			var num = this.connectedTo().length;
-			if(this.numActivated == num){
-				$super(this);
-			}		
+		react: function(){
+			if(this.lastReacted == this.connectedTo().length){
+				this.propagate();
+			}
 		}
 	});
 
@@ -864,7 +777,6 @@ var play = function(pjs) {
 			pjs.fill(typeDict[this.type].color);
 			$super();
 		},
-
 	});
 
 };
