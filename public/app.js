@@ -69,19 +69,19 @@ var play = function(pjs) {
 				help: "When activated, a Thruster will move in the direction of the button that activated it."
 			},
 			{
-				name: 'AndGate',
+				name: 'AND Gate',
 				constructor: AndGate,
 				color: pjs.color(147,181,159),
 				help: "An AND Gate will only activate if all of its inputs are active."
 			},
 			{
-				name: 'NotGate',
+				name: 'NOT Gate',
 				constructor: NotGate,
 				color: pjs.color(237,212,142),
 				help: "A NOT Gate will only activate if it hasn't been activated by any other button."
 			},
 			{
-				name: 'OrGate',
+				name: 'OR Gate',
 				constructor: OrGate,
 				color: pjs.color(200,220,142),
 				help: "An OR gate will activate if any of its inputs are active."
@@ -90,7 +90,7 @@ var play = function(pjs) {
 				name: 'Delete',
 				constructor: DeleteButton,
 				color: pjs.color(214,120,97),
-				help: "Drag the DeleteButton over another button to delete it."
+				help: "Drag the Delete Button over another button to delete it."
 			},
 			{
 				name: 'Attach',
@@ -106,11 +106,11 @@ var play = function(pjs) {
 
 		var rows = Math.ceil((types.length * (buttonWidth * 1.5)) / pjs.width);
 		var cols = Math.ceil(types.length / rows);
-		controlDimen = new pjs.PVector(pjs.width, 140*rows);
+		controlDimen = new pjs.PVector(pjs.width-60, 140*rows);
 
-		var startX = controlDimen.x/cols;
+		var startX = controlDimen.x/cols + 60;
 		var x = startX;
-		var y = pjs.height - controlDimen.y + controlDimen.y/(rows + 1) + 15;
+		var y = pjs.height - controlDimen.y + controlDimen.y/(rows + 1) - 15;
 
 		for(var i=0; i<types.length; i++){
 			if(i % cols == 0 && i > 0){
@@ -211,16 +211,17 @@ var play = function(pjs) {
 	var drawMenu = function(){
 
 		pjs.fill(172,100);
-		pjs.rect(0,pjs.height - controlDimen.y,controlDimen.x, controlDimen.y);
+		pjs.rect(30,pjs.height - controlDimen.y,controlDimen.x, controlDimen.y+20, 20);
 		pjs.textSize(fontSize);
 
 		for(var i=0; i<types.length; i++){
 			var curr = types[i];
-			
+			pjs.fill(180,100);
+			pjs.ellipse(curr.pos.x, curr.pos.y, 90,90);
 			pjs.fill(curr.color);
 			pjs.ellipse(curr.pos.x, curr.pos.y, 80,80);
-			pjs.fill(100,172);
-			pjs.text(curr.name, curr.pos.x, curr.pos.y-50);
+			pjs.fill(80,172);
+			pjs.text(curr.name, curr.pos.x, curr.pos.y+70);
 		}
 
 
@@ -484,7 +485,7 @@ var play = function(pjs) {
 			}
 		},
 
-		render: function(){
+		render: function(color){
 
 			if(!currPart)
 				this.tick();
@@ -499,6 +500,7 @@ var play = function(pjs) {
 			pjs.pushMatrix();
 			pjs.translate(this.pos.x, this.pos.y);
 			pjs.rotate(this.rot + this.v.x/50);
+			pjs.fill(color)
 			pjs.ellipse(0, 0, this.rad, this.rad);
 			
 			pjs.popMatrix();
@@ -586,12 +588,10 @@ var play = function(pjs) {
 		type: 'Button',
 		render: function($super){
 			if(this.active){
-				pjs.fill(84,115,115);
+				$super(84,115,115);
 			}else{
-				pjs.fill(typeDict['Button'].color);
+				$super(typeDict['Button'].color);
 			}
-
-			$super();
 		},
 
 		react: function(){
@@ -605,8 +605,7 @@ var play = function(pjs) {
 	var Thruster = Class.create(Part, {
 		type: 'Thruster',
 		render: function($super){
-			pjs.fill(typeDict['Thruster'].color);
-			$super();
+			$super(typeDict['Thruster'].color);
 			this.source = null;
 		},
 
@@ -628,11 +627,10 @@ var play = function(pjs) {
 	});
 
 	var NotGate = Class.create(Part, {
-		type:'NotGate',
+		type:'NOT Gate',
 
 		render: function($super){
-			pjs.fill(typeDict[this.type].color);
-			$super();
+			$super(typeDict[this.type].color);
 		},
 
 		react: function(){
@@ -647,8 +645,7 @@ var play = function(pjs) {
 		type:'Delete',
 
 		render: function($super){
-			pjs.fill(typeDict[this.type].color);
-			$super();
+			$super(typeDict[this.type].color);
 		},
 
 		chainReact: function($super, source, callOrig){
@@ -720,8 +717,7 @@ var play = function(pjs) {
 		},
 
 		render: function($super){
-			pjs.fill(typeDict[this.type].color);
-			$super();
+			$super(typeDict[this.type].color);
 		},
 
 		chainReact: function($super, source, callOrig){
@@ -757,11 +753,10 @@ var play = function(pjs) {
 	});
 
 	var AndGate = Class.create(Part, {
-		type:'AndGate',
+		type:'AND Gate',
 
 		render: function($super){
-			pjs.fill(typeDict[this.type].color);
-			$super();
+			$super(typeDict[this.type].color);
 		},
 
 		react: function(){
@@ -772,10 +767,9 @@ var play = function(pjs) {
 	});
 
 	var OrGate = Class.create(Part, {
-		type:'OrGate',
+		type:'OR Gate',
 		render: function($super){
-			pjs.fill(typeDict[this.type].color);
-			$super();
+			$super(typeDict[this.type].color);
 		},
 	});
 
