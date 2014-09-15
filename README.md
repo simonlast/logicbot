@@ -1,4 +1,4 @@
-![Billy](https://raw.github.com/simonlast/logicbot/master/screenshot.png)
+![LogicBot](https://raw.github.com/simonlast/logicbot/master/screenshot.png)
 
 #LogicBot
 
@@ -8,4 +8,4 @@ In most programming environments, there exists a dichotomy between the area wher
 
 A LogicBot program is a kinetic creature composed of a logical circuit. By placing and connecting simple components, the user can control the behavior of the creature, programming it to move in different ways. By allowing the user to create and interact with the program in the same place, feedback becomes instantaneous and intuitive, advocating a playful and exploratory creative process.
 
-#[Try it Out](http://logicbot.jit.su)
+#[Try it Out](logicbot.simonlast.org)
